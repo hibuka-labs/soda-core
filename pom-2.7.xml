@@ -4,9 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.hibuka.soda</groupId>
-    <artifactId>soda-core</artifactId>
-    <version>1.1.0</version>
-    <packaging>jar</packaging>
+    <artifactId>soda-core-parent</artifactId>
+    <version>2.1.0-boot27-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>soda-core-base</module>
+        <module>soda-event-redis</module>
+    </modules>
     <name>soda-core</name>
     <description>
 A Spring Boot starter that provides a complete foundation for implementing Domain-Driven Design (DDD) in Java applications. It includes abstractions and best practices for CQRS (Command Query Responsibility Segregation), event-driven architecture, unified exception handling, parameter validation, and configurable asynchronous processing. Designed to help developers build high-cohesion, extensible, and maintainable microservice systems with minimal boilerplate.
@@ -14,6 +19,7 @@ A Spring Boot starter that provides a complete foundation for implementing Domai
 </description>
 
     <properties>
+        <revision>2.1.0-boot27-SNAPSHOT</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -123,6 +129,27 @@ A Spring Boot starter that provides a complete foundation for implementing Domai
                     <failOnError>false</failOnError>
                     <quiet>true</quiet>
                 </configuration>
+            </plugin>
+            <!-- Transformer plugin to convert Jakarta bytecode to Javax for Boot 2 compatibility -->
+            <plugin>
+                <groupId>org.eclipse.transformer</groupId>
+                <artifactId>transformer-maven-plugin</artifactId>
+                <version>0.5.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <rules>
+                        <jakartaDefaults>true</jakartaDefaults>
+                    </rules>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

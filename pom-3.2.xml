@@ -2,125 +2,154 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
     <groupId>com.hibuka.soda</groupId>
-  <artifactId>soda-core</artifactId>
-    <version>2.0.0</version>
-    <packaging>jar</packaging>
-  <name>soda-core</name>
-    <description>
-A Spring Boot starter that provides a complete foundation for implementing Domain-Driven Design (DDD) in Java applications. It includes abstractions and best practices for CQRS (Command Query Responsibility Segregation), event-driven architecture, unified exception handling, parameter validation, and configurable asynchronous processing. Designed to help developers build high-cohesion, extensible, and maintainable microservice systems with minimal boilerplate.
-（中文）一个用于Java应用的Spring Boot DDD（领域驱动设计）快速启动器，内置CQRS（命令查询职责分离）、事件驱动架构、统一异常处理、参数校验和可配置异步处理等最佳实践抽象，帮助开发者高效构建高内聚、易扩展、易维护的微服务系统。
-</description>
+    <artifactId>soda-core-parent</artifactId>
+    <version>2.1.0-boot32-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-  <properties>
+    <modules>
+        <module>soda-core-base</module>
+        <module>soda-event-redis</module>
+    </modules>
+    <name>soda-core</name>
+    <description>
+        A Spring Boot starter that provides a complete foundation for implementing Domain-Driven Design (DDD) in Java
+        applications. It includes abstractions and best practices for CQRS (Command Query Responsibility Segregation),
+        event-driven architecture, unified exception handling, parameter validation, and configurable asynchronous
+        processing. Designed to help developers build high-cohesion, extensible, and maintainable microservice systems
+        with minimal boilerplate.
+        （中文）一个用于Java应用的Spring Boot
+        DDD（领域驱动设计）快速启动器，内置CQRS（命令查询职责分离）、事件驱动架构、统一异常处理、参数校验和可配置异步处理等最佳实践抽象，帮助开发者高效构建高内聚、易扩展、易维护的微服务系统。
+    </description>
+
+    <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-    <spring-boot.version>3.2.12</spring-boot.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <spring-boot.version>3.2.12</spring-boot.version>
         <fastjson-version>1.2.83</fastjson-version>
         <lombok-version>1.18.36</lombok-version>
         <knife4j.version>4.3.0</knife4j.version>
-  </properties>
+    </properties>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
-        <type>pom</type>
+                <type>pom</type>
                 <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>6.1.6</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-aop</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.alibaba</groupId>
-      <artifactId>fastjson</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
             <version>${fastjson-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
             <version>${lombok-version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.github.xiaoymin</groupId>
-      <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
             <version>${knife4j.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+    </dependencies>
 
-  <build>
-      <plugins>
-        <plugin>
+    <build>
+        <plugins>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.11.0</version>
-        <configuration>
-          <source>17</source>
-          <target>17</target>
-          <encoding>UTF-8</encoding>
-          <parameters>true</parameters>
-        </configuration>
-      </plugin>
-      <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                    <encoding>UTF-8</encoding>
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.1.2</version>
-      </plugin>
-      <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                    <failOnViolation>false</failOnViolation>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.3.0</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.6.3</version>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <encoding>UTF-8</encoding>
-          <charset>UTF-8</charset>
-          <docencoding>UTF-8</docencoding>
-          <failOnError>false</failOnError>
-          <quiet>true</quiet>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <charset>UTF-8</charset>
+                    <docencoding>UTF-8</docencoding>
+                    <failOnError>false</failOnError>
+                    <quiet>true</quiet>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <distributionManagement>
         <snapshotRepository>
