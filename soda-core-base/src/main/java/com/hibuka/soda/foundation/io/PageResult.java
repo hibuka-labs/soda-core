@@ -61,35 +61,15 @@ public class PageResult<T> extends Result<T> {
     }
 
     /**
-     * Constructor with total, data, pageNo, and pageSize.
+     * Constructor with data, total, pageNo, pageSize, and requestId.
      *
-     * @param total total number of records
-     * @param data list of records
-     * @param pageNo page number
-     * @param pageSize page size
-     */
-    public PageResult(Long total, T data, Integer pageNo, Integer pageSize) {
-        super(data);
-        this.total = total;
-        this.pageNo = pageNo;
-        this.pageSize = pageSize;
-        this.pages = calculatePages(total, pageSize);
-        this.hasNext = calculateHasNext(pageNo, pages);
-        this.hasPrevious = calculateHasPrevious(pageNo);
-        this.startIndex = calculateStartIndex(pageNo, pageSize);
-        this.endIndex = calculateEndIndex(startIndex, pageSize, total);
-    }
-
-    /**
-     * Constructor with total, data, pageNo, pageSize, and requestId.
-     *
-     * @param total total number of records
-     * @param data list of records
-     * @param pageNo page number
-     * @param pageSize page size
+     * @param data      list of records
+     * @param total     total number of records
+     * @param pageNo    page number
+     * @param pageSize  page size
      * @param requestId request ID
      */
-    public PageResult(Long total, T data, Integer pageNo, Integer pageSize, String requestId) {
+    public PageResult(T data, Long total, Integer pageNo, Integer pageSize, String requestId) {
         super(data);
         setRequestId(requestId);
         this.total = total;
@@ -103,9 +83,21 @@ public class PageResult<T> extends Result<T> {
     }
 
     /**
+     * Constructor with data, total, pageNo, and pageSize.
+     *
+     * @param data     list of records
+     * @param total    total number of records
+     * @param pageNo   page number
+     * @param pageSize page size
+     */
+    public PageResult(T data, Long total, Integer pageNo, Integer pageSize) {
+        this(data, total, pageNo, pageSize, null);
+    }
+
+    /**
      * Calculates the number of pages.
      *
-     * @param total total number of records
+     * @param total    total number of records
      * @param pageSize page size
      * @return number of pages
      */
@@ -120,7 +112,7 @@ public class PageResult<T> extends Result<T> {
      * Calculates whether there is a next page.
      *
      * @param pageNo page number
-     * @param pages number of pages
+     * @param pages  number of pages
      * @return true if there is a next page, false otherwise
      */
     private Boolean calculateHasNext(Integer pageNo, Long pages) {
@@ -140,7 +132,7 @@ public class PageResult<T> extends Result<T> {
     /**
      * Calculates the start index of the current page.
      *
-     * @param pageNo page number
+     * @param pageNo   page number
      * @param pageSize page size
      * @return start index
      */
@@ -152,8 +144,8 @@ public class PageResult<T> extends Result<T> {
      * Calculates the end index of the current page.
      *
      * @param startIndex start index
-     * @param pageSize page size
-     * @param total total number of records
+     * @param pageSize   page size
+     * @param total      total number of records
      * @return end index
      */
     private Long calculateEndIndex(Long startIndex, Integer pageSize, Long total) {
@@ -162,258 +154,175 @@ public class PageResult<T> extends Result<T> {
     }
 
     /**
-     * Returns a successful page result with total, data, pageNo, and pageSize.
+     * Returns a successful page result with data, total, pageNo, and pageSize.
      *
-     * @param total total number of records
-     * @param data list of records
-     * @param pageNo page number
+     * @param data     list of records
+     * @param total    total number of records
+     * @param pageNo   page number
      * @param pageSize page size
-     * @param <T> data type
+     * @param <T>      data type
      * @return successful page result
      */
-    public static <T> PageResult<T> success(Long total, T data, Integer pageNo, Integer pageSize) {
-        return new PageResult<>(total, data, pageNo, pageSize);
+    public static <T> PageResult<T> success(T data, Long total, Integer pageNo, Integer pageSize) {
+        return new PageResult<>(data, total, pageNo, pageSize);
     }
 
     /**
-     * Returns a successful page result with total, data, pageNo, pageSize, and requestId.
+     * Returns a successful page result with data, total, pageNo, pageSize, code, and message.
      *
-     * @param total total number of records
-     * @param data list of records
-     * @param pageNo page number
+     * @param data     list of records
+     * @param total    total number of records
+     * @param pageNo   page number
      * @param pageSize page size
-     * @param requestId request ID
-     * @param <T> data type
+     * @param code     response code
+     * @param message  response message
+     * @param <T>      data type
      * @return successful page result
      */
-    public static <T> PageResult<T> success(Long total, T data, Integer pageNo, Integer pageSize, String requestId) {
-        PageResult<T> result = new PageResult<>(total, data, pageNo, pageSize);
-        result.setRequestId(requestId);
+    public static <T> PageResult<T> success(T data, Long total, Integer pageNo, Integer pageSize, int code, String message) {
+        PageResult<T> result = new PageResult<>(data, total, pageNo, pageSize);
+        result.setCode(code);
+        result.setMessage(message);
         return result;
     }
 
     /**
-     * Returns a successful page result with total, data, pageDTO.
+     * Returns a successful page result with data, total, pageNo, pageSize, and requestId.
      *
-     * @param total total number of records
-     * @param data list of records
-     * @param pageDTO pageDTO
-     * @param <T> data type
+     * @param data      list of records
+     * @param total     total number of records
+     * @param pageNo    page number
+     * @param pageSize  page size
+     * @param requestId request ID
+     * @param <T>       data type
      * @return successful page result
      */
-    public static <T> PageResult<T> success(Long total, T data, BasePageRequest pageDTO) {
-        return new PageResult<>(total, data, pageDTO.getPageNo(), pageDTO.getPageSize());
+    public static <T> PageResult<T> successWithRequestId(T data, Long total, Integer pageNo, Integer pageSize, String requestId) {
+        return new PageResult<>(data, total, pageNo, pageSize, requestId);
     }
 
     /**
-     * Returns a successful page result with total, data, pageDTO, and requestId.
+     * Returns a successful page result with data, total, pageNo, pageSize, code, message, and requestId.
      *
-     * @param total total number of records
-     * @param data list of records
-     * @param pageDTO pageDTO
+     * @param data      list of records
+     * @param total     total number of records
+     * @param pageNo    page number
+     * @param pageSize  page size
+     * @param code      response code
+     * @param message   response message
      * @param requestId request ID
-     * @param <T> data type
+     * @param <T>       data type
      * @return successful page result
      */
-    public static <T> PageResult<T> success(Long total, T data, BasePageRequest pageDTO, String requestId) {
-        PageResult<T> result = new PageResult<>(total, data, pageDTO.getPageNo(), pageDTO.getPageSize());
-        result.setRequestId(requestId);
+    public static <T> PageResult<T> successWithRequestId(T data, Long total, Integer pageNo, Integer pageSize, int code, String message, String requestId) {
+        PageResult<T> result = new PageResult<>(data, total, pageNo, pageSize, requestId);
+        result.setCode(code);
+        result.setMessage(message);
         return result;
     }
+
 
     /**
      * Returns a successful page result with data, pageNo, and pageSize, total is 0.
      *
-     * @param data list of records
-     * @param pageNo page number
+     * @param data     list of records
+     * @param pageNo   page number
      * @param pageSize page size
-     * @param <T> data type
+     * @param <T>      data type
      * @return successful page result
      */
     public static <T> PageResult<T> success(T data, Integer pageNo, Integer pageSize) {
-        return new PageResult<>(0L, data, pageNo, pageSize);
+        return new PageResult<>(data, 0L, pageNo, pageSize);
     }
 
     /**
      * Returns a successful page result with data, pageNo, pageSize, total is 0, and requestId.
      *
-     * @param data list of records
-     * @param pageNo page number
-     * @param pageSize page size
+     * @param data      list of records
+     * @param pageNo    page number
+     * @param pageSize  page size
      * @param requestId request ID
-     * @param <T> data type
+     * @param <T>       data type
      * @return successful page result
      */
-    public static <T> PageResult<T> success(T data, Integer pageNo, Integer pageSize, String requestId) {
-        PageResult<T> result = new PageResult<>(0L, data, pageNo, pageSize);
-        result.setRequestId(requestId);
-        return result;
+    public static <T> PageResult<T> successWithRequestId(T data, Integer pageNo, Integer pageSize, String requestId) {
+        return new PageResult<>(data, 0L, pageNo, pageSize, requestId);
     }
 
-    /**
-     * Returns a successful page result with data, pageNo, pageSize, and total.
-     * This method is for backward compatibility with existing code.
-     *
-     * @param data list of records
-     * @param pageNo page number
-     * @param pageSize page size
-     * @param total total number of records
-     * @param <T> data type
-     * @return successful page result
-     */
-    public static <T> PageResult<T> success(T data, Integer pageNo, Integer pageSize, Long total) {
-        return new PageResult<>(total, data, pageNo, pageSize);
-    }
-
-    /**
-     * Returns a successful page result with data, pageNo, pageSize, total, and requestId.
-     * This method is for backward compatibility with existing code.
-     *
-     * @param data list of records
-     * @param pageNo page number
-     * @param pageSize page size
-     * @param total total number of records
-     * @param requestId request ID
-     * @param <T> data type
-     * @return successful page result
-     */
-    public static <T> PageResult<T> success(T data, Integer pageNo, Integer pageSize, Long total, String requestId) {
-        PageResult<T> result = new PageResult<>(total, data, pageNo, pageSize);
-        result.setRequestId(requestId);
-        return result;
-    }
-
-    /**
-     * Returns a successful page result with data, pageDTO, total is 0.
-     *
-     * @param data list of records
-     * @param pageDTO pageDTO
-     * @param <T> data type
-     * @return successful page result
-     */
-    public static <T> PageResult<T> success(T data, BasePageRequest pageDTO) {
-        return new PageResult<>(0L, data, pageDTO.getPageNo(), pageDTO.getPageSize());
-    }
-
-    /**
-     * Returns a successful page result with data, pageDTO, total is 0, and requestId.
-     *
-     * @param data list of records
-     * @param pageDTO pageDTO
-     * @param requestId request ID
-     * @param <T> data type
-     * @return successful page result
-     */
-    public static <T> PageResult<T> success(T data, BasePageRequest pageDTO, String requestId) {
-        PageResult<T> result = new PageResult<>(0L, data, pageDTO.getPageNo(), pageDTO.getPageSize());
-        result.setRequestId(requestId);
-        return result;
-    }
 
     /**
      * Returns a successful page result with data, total is 0, pageNo is 1, pageSize is 10.
      *
      * @param data list of records
-     * @param <T> data type
+     * @param <T>  data type
      * @return successful page result
      */
     public static <T> PageResult<T> success(T data) {
-        return new PageResult<>(0L, data, 1, 10);
+        return new PageResult<>(data, 0L, 1, 10);
     }
 
     /**
      * Returns a successful page result with data, total is 0, pageNo is 1, pageSize is 10, and requestId.
      *
-     * @param data list of records
+     * @param data      list of records
      * @param requestId request ID
-     * @param <T> data type
+     * @param <T>       data type
      * @return successful page result
      */
-    public static <T> PageResult<T> success(T data, String requestId) {
-        PageResult<T> result = new PageResult<>(0L, data, 1, 10);
-        result.setRequestId(requestId);
-        return result;
+    public static <T> PageResult<T> successWithRequestId(T data, String requestId) {
+        return new PageResult<>(data, 0L, 1, 10, requestId);
     }
 
     /**
-     * Returns a successful page result with total, pageDTO, data is null.
+     * Returns a failed page result with data, code, and message.
      *
-     * @param total total number of records
-     * @param pageDTO pageDTO
-     * @param <T> data type
-     * @return successful page result
-     */
-    public static <T> PageResult<T> success(Long total, BasePageRequest pageDTO) {
-        return new PageResult<>(total, null, pageDTO.getPageNo(), pageDTO.getPageSize());
-    }
-
-    /**
-     * Returns a successful page result with total, pageDTO, data is null, and requestId.
-     *
-     * @param total total number of records
-     * @param pageDTO pageDTO
-     * @param requestId request ID
-     * @param <T> data type
-     * @return successful page result
-     */
-    public static <T> PageResult<T> success(Long total, BasePageRequest pageDTO, String requestId) {
-        PageResult<T> result = new PageResult<>(total, null, pageDTO.getPageNo(), pageDTO.getPageSize());
-        result.setRequestId(requestId);
-        return result;
-    }
-
-    /**
-     * Returns a failed page result with message.
-     *
+     * @param code    error code
      * @param message error message
-     * @param <T> data type
-     * @return failed page result
-     */
-    public static <T> PageResult<T> fail(String message) {
-        return fail(500, message);
-    }
-
-    /**
-     * Returns a failed page result with message and requestId.
-     *
-     * @param message error message
-     * @param requestId request ID
-     * @param <T> data type
-     * @return failed page result
-     */
-    public static <T> PageResult<T> fail(String message, String requestId) {
-        return fail(500, message, requestId);
-    }
-
-    /**
-     * Returns a failed page result with code and message.
-     *
-     * @param code error code
-     * @param message error message
-     * @param <T> data type
+     * @param <T>     data type
      * @return failed page result
      */
     public static <T> PageResult<T> fail(int code, String message) {
         PageResult<T> result = new PageResult<>();
         result.setCode(code);
         result.setMessage(message);
+        result.setData(null);
         result.setSuccess(false);
         return result;
     }
 
     /**
-     * Returns a failed page result with code, message, and requestId.
+     * Returns a failed page result with data, code, and message.
      *
-     * @param code error code
+     * @param data    response data
+     * @param code    error code
      * @param message error message
-     * @param requestId request ID
-     * @param <T> data type
+     * @param <T>     data type
      * @return failed page result
      */
-    public static <T> PageResult<T> fail(int code, String message, String requestId) {
+    public static <T> PageResult<T> fail(T data, int code, String message) {
         PageResult<T> result = new PageResult<>();
         result.setCode(code);
         result.setMessage(message);
+        result.setData(data);
+        result.setSuccess(false);
+        return result;
+    }
+
+    /**
+     * Returns a failed page result with data, code, message, and requestId.
+     *
+     * @param data      response data
+     * @param code      error code
+     * @param message   error message
+     * @param requestId request ID
+     * @param <T>       data type
+     * @return failed page result
+     */
+    public static <T> PageResult<T> failWithRequestId(T data, int code, String message, String requestId) {
+        PageResult<T> result = new PageResult<>();
+        result.setCode(code);
+        result.setMessage(message);
+        result.setData(data);
         result.setSuccess(false);
         result.setRequestId(requestId);
         return result;

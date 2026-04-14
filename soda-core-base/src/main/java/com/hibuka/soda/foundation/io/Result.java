@@ -65,44 +65,12 @@ public class Result<T> implements Serializable {
     }
 
     /**
-     * Constructor with code, message, data, success.
-     *
-     * @param code response code
-     * @param message response message
-     * @param data response data
-     * @param success response success flag
-     */
-    public Result(Integer code, String message, T data, Boolean success) {
-        this.code = code;
-        this.message = message;
-        this.data = data;
-        this.success = success;
-    }
-
-    /**
-     * Constructor with code, message, data, success, errorData.
-     *
-     * @param code response code
-     * @param message response message
-     * @param data response data
-     * @param success response success flag
-     * @param errorData error data
-     */
-    public Result(Integer code, String message, T data, Boolean success, Map<String, Object> errorData) {
-        this.code = code;
-        this.message = message;
-        this.data = data;
-        this.success = success;
-        this.errorData = errorData;
-    }
-
-    /**
      * Constructor with code, message, data, success, errorData, requestId.
      *
-     * @param code response code
-     * @param message response message
-     * @param data response data
-     * @param success response success flag
+     * @param code      response code
+     * @param message   response message
+     * @param data      response data
+     * @param success   response success flag
      * @param errorData error data
      * @param requestId request ID
      */
@@ -111,15 +79,40 @@ public class Result<T> implements Serializable {
         this.message = message;
         this.data = data;
         this.success = success;
-        this.errorData = errorData;
+        this.errorData = errorData != null ? errorData : Collections.emptyMap();
         this.requestId = requestId;
+    }
+
+    /**
+     * Constructor with code, message, data, success, errorData.
+     *
+     * @param code      response code
+     * @param message   response message
+     * @param data      response data
+     * @param success   response success flag
+     * @param errorData error data
+     */
+    public Result(Integer code, String message, T data, Boolean success, Map<String, Object> errorData) {
+        this(code, message, data, success, errorData, null);
+    }
+
+    /**
+     * Constructor with code, message, data, success.
+     *
+     * @param code    response code
+     * @param message response message
+     * @param data    response data
+     * @param success response success flag
+     */
+    public Result(Integer code, String message, T data, Boolean success) {
+        this(code, message, data, success, Collections.emptyMap(), null);
     }
 
     /**
      * Returns a successful result with data.
      *
      * @param data response data
-     * @param <T> data type
+     * @param <T>  data type
      * @return successful result
      */
     public static <T> Result<T> success(T data) {
@@ -129,9 +122,9 @@ public class Result<T> implements Serializable {
     /**
      * Returns a successful result with data and message.
      *
-     * @param data response data
+     * @param data    response data
      * @param message response message
-     * @param <T> data type
+     * @param <T>     data type
      * @return successful result
      */
     public static <T> Result<T> success(T data, String message) {
@@ -139,12 +132,25 @@ public class Result<T> implements Serializable {
     }
 
     /**
+     * Returns a successful result with data, code, and message.
+     *
+     * @param data    response data
+     * @param code    response code
+     * @param message response message
+     * @param <T>     data type
+     * @return successful result
+     */
+    public static <T> Result<T> success(T data, int code, String message) {
+        return new Result<>(code, message, data, true);
+    }
+
+    /**
      * Returns a successful result with data, message, and requestId.
      *
-     * @param data response data
-     * @param message response message
+     * @param data      response data
+     * @param message   response message
      * @param requestId request ID
-     * @param <T> data type
+     * @param <T>       data type
      * @return successful result
      */
     public static <T> Result<T> successWithRequestId(T data, String message, String requestId) {
@@ -154,36 +160,17 @@ public class Result<T> implements Serializable {
     }
 
     /**
-     * Returns a successful result with message, data is null.
+     * Returns a successful result with data, code, message, and requestId.
      *
-     * @param message response message
-     * @param <T> data type
-     * @return successful result
-     */
-    public static <T> Result<T> success(String message) {
-        return new Result<>(200, message, null, true);
-    }
-
-    /**
-     * Returns a successful result with no data.
-     *
-     * @param <T> data type
-     * @return successful result
-     */
-    public static <T> Result<T> success() {
-        return new Result<>(200, "", null, true);
-    }
-
-    /**
-     * Returns a successful result with message and requestId, data is null.
-     *
-     * @param message response message
+     * @param data      response data
+     * @param code      response code
+     * @param message   response message
      * @param requestId request ID
-     * @param <T> data type
+     * @param <T>       data type
      * @return successful result
      */
-    public static <T> Result<T> successWithRequestId(String message, String requestId) {
-        Result<T> result = new Result<>(200, message, null, true);
+    public static <T> Result<T> successWithRequestId(T data, int code, String message, String requestId) {
+        Result<T> result = new Result<>(code, message, data, true);
         result.setRequestId(requestId);
         return result;
     }
@@ -191,9 +178,9 @@ public class Result<T> implements Serializable {
     /**
      * Returns a successful result with data and requestId, message is empty.
      *
-     * @param data response data
+     * @param data      response data
      * @param requestId request ID
-     * @param <T> data type
+     * @param <T>       data type
      * @return successful result
      */
     public static <T> Result<T> successWithRequestId(T data, String requestId) {
@@ -203,37 +190,24 @@ public class Result<T> implements Serializable {
     }
 
     /**
-     * Returns a successful result with requestId, no data, message is empty.
+     * Returns a failed result with data, code, and message.
      *
-     * @param requestId request ID
-     * @param <T> data type
-     * @return successful result
-     */
-    public static <T> Result<T> successWithRequestId(String requestId) {
-        Result<T> result = new Result<>(200, "", null, true);
-        result.setRequestId(requestId);
-        return result;
-    }
-
-    /**
-     * Returns a failed result with code, message, and data.
-     *
-     * @param code response code
+     * @param data    response data
+     * @param code    response code
      * @param message response message
-     * @param data response data
-     * @param <T> data type
+     * @param <T>     data type
      * @return failed result
      */
-    public static <T> Result<T> fail(int code, String message, T data) {
+    public static <T> Result<T> fail(T data, int code, String message) {
         return new Result<>(code, message, data, false);
     }
 
     /**
-     * Returns a failed result with code and message, data is null.
+     * Returns a failed result with data, code, and message.
      *
-     * @param code response code
+     * @param code    response code
      * @param message response message
-     * @param <T> data type
+     * @param <T>     data type
      * @return failed result
      */
     public static <T> Result<T> fail(int code, String message) {
@@ -241,93 +215,26 @@ public class Result<T> implements Serializable {
     }
 
     /**
-     * Returns a failed result with message, code is 500, data is null.
+     * Returns a failed result with data, code, message, and requestId.
      *
-     * @param message response message
-     * @param <T> data type
-     * @return failed result
-     */
-    public static <T> Result<T> fail(String message) {
-        return new Result<>(500, message, null, false);
-    }
-
-    /**
-     * Returns a failed result with code, message, data, and requestId.
-     *
-     * @param code response code
-     * @param message response message
-     * @param data response data
+     * @param data      response data
+     * @param code      response code
+     * @param message   response message
      * @param requestId request ID
-     * @param <T> data type
+     * @param <T>       data type
      * @return failed result
      */
-    public static <T> Result<T> failWithRequestId(int code, String message, T data, String requestId) {
+    public static <T> Result<T> failWithRequestId(T data, int code, String message, String requestId) {
         Result<T> result = new Result<>(code, message, data, false);
         result.setRequestId(requestId);
         return result;
     }
 
     /**
-     * Returns a failed result with code, message, and requestId, data is null.
-     *
-     * @param code response code
-     * @param message response message
-     * @param requestId request ID
-     * @param <T> data type
-     * @return failed result
-     */
-    public static <T> Result<T> failWithRequestId(int code, String message, String requestId) {
-        Result<T> result = new Result<>(code, message, null, false);
-        result.setRequestId(requestId);
-        return result;
-    }
-
-    /**
-     * Returns a failed result with message and requestId, code is 500, data is null.
-     *
-     * @param message response message
-     * @param requestId request ID
-     * @param <T> data type
-     * @return failed result
-     */
-    public static <T> Result<T> failWithRequestId(String message, String requestId) {
-        Result<T> result = new Result<>(500, message, null, false);
-        result.setRequestId(requestId);
-        return result;
-    }
-
-    /**
-     * Returns a failed result with IErrorCode and data.
+     * Returns a failed result with data and IErrorCode.
      *
      * @param errorCode error code
-     * @param data response data
-     * @param <T> data type
-     * @return failed result
-     */
-    public static <T> Result<T> fail(IErrorCode errorCode, T data) {
-        return new Result<>(errorCode.getCode(), errorCode.getMessage(), data, false, errorCode.getErrorData());
-    }
-
-    /**
-     * Returns a failed result with IErrorCode, data, and requestId.
-     *
-     * @param errorCode error code
-     * @param data response data
-     * @param requestId request ID
-     * @param <T> data type
-     * @return failed result
-     */
-    public static <T> Result<T> failWithRequestId(IErrorCode errorCode, T data, String requestId) {
-        Result<T> result = new Result<>(errorCode.getCode(), errorCode.getMessage(), data, false, errorCode.getErrorData());
-        result.setRequestId(requestId);
-        return result;
-    }
-
-    /**
-     * Returns a failed result with IErrorCode, data is null.
-     *
-     * @param errorCode error code
-     * @param <T> data type
+     * @param <T>       data type
      * @return failed result
      */
     public static <T> Result<T> fail(IErrorCode errorCode) {
@@ -335,15 +242,28 @@ public class Result<T> implements Serializable {
     }
 
     /**
-     * Returns a failed result with IErrorCode and requestId, data is null.
+     * Returns a failed result with data and IErrorCode.
      *
+     * @param data      response data
      * @param errorCode error code
-     * @param requestId request ID
-     * @param <T> data type
+     * @param <T>       data type
      * @return failed result
      */
-    public static <T> Result<T> failWithRequestId(IErrorCode errorCode, String requestId) {
-        Result<T> result = new Result<>(errorCode.getCode(), errorCode.getMessage(), null, false, errorCode.getErrorData());
+    public static <T> Result<T> fail(T data, IErrorCode errorCode) {
+        return new Result<>(errorCode.getCode(), errorCode.getMessage(), data, false, errorCode.getErrorData());
+    }
+
+    /**
+     * Returns a failed result with data, IErrorCode, and requestId.
+     *
+     * @param data      response data
+     * @param errorCode error code
+     * @param requestId request ID
+     * @param <T>       data type
+     * @return failed result
+     */
+    public static <T> Result<T> failWithRequestId(T data, IErrorCode errorCode, String requestId) {
+        Result<T> result = new Result<>(errorCode.getCode(), errorCode.getMessage(), data, false, errorCode.getErrorData());
         result.setRequestId(requestId);
         return result;
     }
