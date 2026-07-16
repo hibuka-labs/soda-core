@@ -244,4 +244,4 @@ docker-compose.override.yml
 # Local development files
 local/
 dev-local/
-prod-local/
+prod-local/docs/

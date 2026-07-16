@@ -1,9 +1,10 @@
 package com.hibuka.soda.event.redis;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.exc.InvalidDefinitionException;
+import tools.jackson.databind.json.JsonMapper;
 import com.hibuka.soda.bus.configuration.EventProperties;
 import com.hibuka.soda.cqrs.event.EventBus;
 import com.hibuka.soda.cqrs.event.EventHandler;
@@ -548,9 +549,10 @@ public class RedisStreamEventBus implements EventBus, InitializingBean {
             
             logger.debug("[RedisStreamEventBus] Extracting eventId from serialized event: {}", serializedEvent);
             
-            // Create a simple ObjectMapper for parsing
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            // In Jackson 3, ObjectMapper is immutable; use builder pattern
+            ObjectMapper mapper = JsonMapper.builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .build();
             
             try {
                 // Parse the JSON to get eventId directly

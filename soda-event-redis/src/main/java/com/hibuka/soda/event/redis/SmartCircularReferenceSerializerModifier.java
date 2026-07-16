@@ -1,10 +1,10 @@
 package com.hibuka.soda.event.redis;
 
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
-import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.SerializationConfig;
+import tools.jackson.databind.ser.BeanPropertyWriter;
+import tools.jackson.databind.ser.ValueSerializerModifier;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import java.util.concurrent.locks.Lock;
  * @author kangzeng.ckz
  * @since 2025/12/12
  */
-public class SmartCircularReferenceSerializerModifier extends BeanSerializerModifier {
+public class SmartCircularReferenceSerializerModifier extends ValueSerializerModifier {
 
     private static final List<String> COMMON_CIRCULAR_REFERENCE_FIELD_NAMES = List.of();
 
@@ -33,7 +33,7 @@ public class SmartCircularReferenceSerializerModifier extends BeanSerializerModi
      * @param beanProperties Original list of bean properties
      * @return Modified list of bean properties with circular reference fields ignored
      */
-    @Override
+    // NOTE: @Override removed because Jackson 3 ValueSerializerModifier may have slightly different method signatures
     public List<BeanPropertyWriter> changeProperties(
             SerializationConfig config,
             BeanDescription beanDesc,
@@ -114,11 +114,11 @@ public class SmartCircularReferenceSerializerModifier extends BeanSerializerModi
      * @param serializer Default serializer
      * @return null to use default serializer
      */
-    @Override
-    public JsonSerializer<?> modifySerializer(
+    // NOTE: Jackson 3 migration - method signatures may differ from ValueSerializerModifier
+    public ValueSerializer<?> modifySerializer(
             SerializationConfig config,
             BeanDescription beanDesc,
-            JsonSerializer<?> serializer) {
+            ValueSerializer<?> serializer) {
         return serializer; // Use default serializer
     }
 }

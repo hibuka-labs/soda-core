@@ -5,7 +5,7 @@ import com.hibuka.soda.cqrs.event.EventBus;
 import com.hibuka.soda.cqrs.event.EventHandler;
 import com.hibuka.soda.domain.event.AbstractDomainEvent;
 import com.hibuka.soda.domain.event.DomainEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
