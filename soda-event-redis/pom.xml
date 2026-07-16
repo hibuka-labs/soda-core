@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.hibuka.soda</groupId>
         <artifactId>soda-core-parent</artifactId>
-        <version>4.0.0</version>
+        <version>17.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -35,18 +35,6 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
         
-        <!-- Jackson 3 dependency (Spring Boot 4 uses Jackson 3 by default) -->
-        <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
-        <!-- Spring Boot JSON starter (Jackson 3) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jackson</artifactId>
-        </dependency>
-
         <!-- Spring Boot test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -64,7 +52,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>21</release>
+                    <release>17</release>
                     <parameters>true</parameters>
                 </configuration>
             </plugin>

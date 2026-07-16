@@ -245,3 +245,4 @@ docker-compose.override.yml
 local/
 dev-local/
 prod-local/docs/
+deploy.sh
