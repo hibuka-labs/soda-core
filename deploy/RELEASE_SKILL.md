@@ -8,8 +8,8 @@
 | 工程 | 路径 | 角色 |
 |---|---|---|
 | soda-core | `/Users/kangzengchen/source/buka/buka-works/soda/soda-core` | 发布主体（jar：soda-core-base、soda-event-redis） |
-| soda-template | `/Users/kangzengchen/source/buka/buka-works/soda/soda-template` | 项目生成器，发布后更新模板里的 `soda.version` pin |
-| soda-template-front | `/Users/kangzengchen/source/buka/buka-works/soda/soda-template-front` | 生成器前端，一般不随 jar 发版变动 |
+| buka-template | `/Users/kangzengchen/source/buka/buka-works/soda/buka-template` | 项目生成器（FastAPI，部署函数计算），发布后更新模板里的 `soda.version` pin |
+| soda-template-front | `/Users/kangzengchen/source/buka/buka-works/soda/soda-template-front` | 生成器前端（React，部署 OSS），一般不随 jar 发版变动 |
 
 ---
 
@@ -17,37 +17,38 @@
 
 ```
 发布前检查 → main 上出版本（脚本：构建/发布/验证/打 tag）
-           → AI 移植到老线分支并发布（best-effort）
-           → 更新 soda-template 模板 pin + README 版本矩阵
+           → 更新 buka-template 模板 pin + README 版本矩阵
 ```
 
 ---
 
 ## 版本矩阵（唯一事实来源）
 
-| Boot 基线 | Jackson | Java | soda-core 版本线 | 分支 | 状态 |
-|---|---|---|---|---|---|
-| 4.1.x | 3.x | 17+（建议 21） | `4.x`（当前活跃） | `main` | ✅ 活跃，新功能只在这 |
-| 3.2.x | 2.x | 8+ | `3.x`（前身 `2.1.2-boot32`） | `maintenance/3.x`（待从 `v2.1.2-boot32` 切出） | 🔒 冻结，应急修复 |
-| 2.3.x ~ 2.7.x | 2.x | 8 | `2.x`（前身 `2.0.0`/`2.1.0` 系列） | 不建分支 | ⛔ EOL，老 jar 留存即可 |
+| soda-core 版本线 | Java 最低 | 支持的 Spring Boot | 分支 | 状态 |
+|---|---|---|---|---|
+| `17.x`（当前活跃） | 17（建议 21） | 3.2.x ~ 4.1.x（**一套 jar 双线**） | `main` | ✅ 活跃，新功能只在这 |
+| `4.0.0` | 21 | 4.x（单线） | — | ⛔ 历史（改名前最后版本），不再发版 |
+| `2.1.x-boot32` | 8 | 3.2.x（旧线） | — | ⛔ EOL，留存即可 |
+| `2.0.x` / `2.1.0` | 8 | 2.x | — | ⛔ EOL，留存即可 |
 
-**版本命名规则：主版本 = Boot 基线代次**，线内 minor/patch 正常语义化（minor=新特性，patch=修复）。
-历史遗留版本（`2.1.2-boot32`、`17.0` 等）已发布不回收，规则从下一个版本起生效。
+**版本命名规则：`<Java主版本>.<软件迭代>.<修复>`** —— 主版本 = 最低 Java 基线，minor = 功能迭代，patch = 修复。
+一套 jar 同时支持 SB 3.2 / SB 4.x（EventSerializer 解耦，Jackson 2/3 双兼容），**消费者只选 Spring Boot 版本，soda 坐标不变**。
+真断代（如 Boot 5 逼出不可兼容变更）时再裂新线，裂线差异对照文末映射表。
 
-⚠️ 当前 `pom.xml` 里版本是历史遗留的 `17.0`，**下一个版本必须换成符合矩阵的 `4.x.y`**（脚本 `versions:set` 会自动改，但发布前检查清单要确认）。
+`17.0.0` 起为新命名规则首个版本。历史版本（`2.x`、`2.1.x-boot32`、`4.0.0`）已发布不回收。
 
 ---
 
 ## 发布前检查清单
 
 - [ ] `mvn clean verify` 本地全绿（测试不过就别发）
-- [ ] 版本号符合矩阵：x.y.z、大版本与分支匹配（4→main / 3→maintenance/3.x）
+- [ ] 版本号符合矩阵：x.y.z、大版本 ≥ 17 且在 `main` 上
 - [ ] 本轮版本号未与已发布冲突（阿里云 + Central 各搜一下）
 - [ ] `deploy/release.local.sh` 已配置（从 `release.local.sh.example` 复制）
-- [ ] README / README-CN 的安装示例版本号和兼容矩阵需要更新吗？
+- [ ] README / README.zh-CN 的安装示例版本号和兼容矩阵需要更新吗？
 - [ ] 有用户可见变更 → 写 CHANGELOG 条目
-- [ ] 破坏性变更？→ 是否该攒到基线升级（**主线永不为兼容妥协**，老线移植不了的就跳过并记录）
-- [ ] git 工作区干净、在正确的分支上
+- [ ] 破坏性变更？→ 是否该攒到裂线（**主线永不为兼容妥协**，双线兼容做不了的明确记入实坑）
+- [ ] git 工作区干净、在 `main` 上
 
 ---
 
@@ -55,18 +56,18 @@
 
 **执行者：AI 照本节跑；人只看结果。**
 
-### 1. 发布主线（4.x，main）
+### 1. 发布主线（17.x，main）
 
 ```bash
 cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
-./deploy/release.sh 4.x.y                      # 默认 --target all
-# ./deploy/release.sh 4.x.y --target central   # 只发 Central
-# ./deploy/release.sh 4.x.y --skip-tests       # 测试已单独跑过时
-# ./deploy/release.sh 4.x.y --dry-run          # 演练，不真发
+./deploy/release.sh 17.x.y                     # 默认 --target all
+# ./deploy/release.sh 17.x.y --target central   # 只发 Central
+# ./deploy/release.sh 17.x.y --skip-tests       # 测试已单独跑过时
+# ./deploy/release.sh 17.x.y --dry-run          # 演练，不真发
 ```
 
 脚本内部顺序（出问题时按此排查）：
-1. **守卫**：分支↔大版本匹配、版本格式、工作区干净
+1. **守卫**：分支=main、大版本≥17、版本格式、工作区干净
 2. **versions:set** 把全模块版本改成目标版本
 3. **mvn clean verify** 全量构建+测试
 4. **阿里云**：`mvn deploy -DaltDeploymentRepository`（临时 settings.xml 注入密钥，用完即删）
@@ -74,24 +75,22 @@ cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
 6. **验证**：从远端拉回三个 artifact 的 pom（阿里云带认证、Central 走 repo1.maven.org，同步有延迟会自动重试）
 7. **打 tag** `v<version>` 并推送
 
-### 2. 移植老线（best-effort，见下方「老线 AI 移植流程」）
+### 2. 发布后
 
-### 3. 发布后
-
-- [ ] soda-template 各模板的 `soda.version` pin 更新（`src/main/resources/templates/*/pom.xml`）
-- [ ] README.md / README-CN.md 兼容矩阵与安装示例
-- [ ] 本轮摘要发给用户：每条线发了什么、跳过了什么、为什么
+- [ ] buka-template 两个模板（`templates/*/pom.xml.jinja`）的 `soda.version` pin 更新（统一 pin，一个版本号）
+- [ ] README.md / README.zh-CN.md 兼容矩阵与安装示例
+- [ ] 本轮摘要发给用户：发了什么、跳过了什么、为什么
 
 ---
 
 ## 模式二：手动发布 + AI 验证
 
-人照旧手动发（或用 `./deploy/release.sh bundle 4.x.y` 只生成签名包手动上传 Portal），
+人照旧手动发（或用 `./deploy/release.sh bundle 17.x.y` 只生成签名包手动上传 Portal），
 发完让 AI 跑：
 
 ```bash
-./deploy/release.sh verify 4.x.y               # 三层验证，只验不发
-./deploy/release.sh verify 4.x.y --target central
+./deploy/release.sh verify 17.x.y               # 三层验证，只验不发
+./deploy/release.sh verify 17.x.y --target central
 ```
 
 ---
@@ -102,24 +101,25 @@ cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
 |---|---|---|
 | 回执 | deploy/上传 API 的返回码与状态 | 仓库收下了 |
 | 拉取 | 从**远端**强制拉回 pom（`verify` 子命令） | 用户真的能解析到（Central 同步延迟约 10~30 分钟，脚本会重试） |
-| 冒烟 | 用 soda-template 生成钉住新版本的示例工程，`mvn package` 启动 | 端到端能用 |
+| 冒烟 | 用 buka-template 生成钉住新版本的示例工程（**Boot 3.2 与 4.0 两个变体都跑**），`mvn package` 启动打接口 | 端到端能用 |
 
 发 Central 后 repo1 短暂 404 是正常的（同步中）；Portal 状态 PUBLISHED 但超过 30 分钟仍拉不到 → 记实坑并排查。
 
 ---
 
-## 老线 AI 移植流程（主线 → maintenance 分支）
+## 裂线与移植（当前无任务；留存备用）
 
-**原则：主线永不为兼容妥协；老线 best-effort，移植不了的特性明确跳过。**
+**原则：主线永不为兼容妥协；真断代才裂线，裂线后老线 best-effort、移植不了的特性明确跳过。**
 
-1. `git checkout maintenance/3.x && git merge main`（或 cherry-pick 本轮 commits）
-2. 按映射表机械转换，修编译错误
-3. 跑 `mvn clean verify` + 冒烟（生成 Boot 3 示例工程）
+历史线（2.x/2.1.x-boot32/4.0.0）一律 EOL，不再接受发布。若未来 Boot 5 等逼出不可兼容变更：
+
+1. 从 main 切出新线（命名按矩阵：新的 Java 基线主版本），老线冻结
+2. 按下表机械转换，修编译错误
+3. 跑 `mvn clean verify` + 冒烟（双 Boot 变体）
 4. **过不了验证门就不发那条线**，绝不硬发
-5. 过了就 `./deploy/release.sh 3.x.y`（在 maintenance 分支上）
-6. 摘要里记录：移植了什么、跳过了什么（如 "3.x 不支持 X，需要 Java 17 语法"）
+5. 摘要里记录：移植了什么、跳过了什么
 
-### 基线差异映射表（移植时对照；踩到新差异就补一行）
+### 裂线差异映射表（对照用；踩到新差异就补一行）
 
 | 方向 | 差异 |
 |---|---|
@@ -170,4 +170,5 @@ soda-core/
 
 > 每次发布踩坑，补一条：`YYYY-MM-DD 实坑：现象 → 根因 → 对策（脚本/清单已改哪里）`
 
-（暂无）
+- 2026-10-28 实坑：Maven Central 上 `2.1.1-boot32` **只有 POM 没有 JAR**（当年打包只传了 POM）→ 公开用户解析必挂 → 对策：弃用该版本（旧线用户用 `2.1.0-boot32`，jar 完好）；Central 版本不可删，只能靠新版本顶替。
+- 2026-10-28 实坑：版本方案在"Boot 基线制"与"Java 基线制"间摇摆过一轮（pom 曾是 17.0，发布工具按 4.x 写，互相拧巴）→ 根因：Jackson 2→3 解耦后一套 jar 可双线，版本轴选错 → 对策：定稿 **Java 基线制**（主版本=Java 基线），版本矩阵、release.sh 守卫、模板 pin 已全部改齐。

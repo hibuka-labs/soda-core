@@ -10,9 +10,9 @@
 #   ./deploy/release.sh bundle <version>
 #
 # 示例:
-#   ./deploy/release.sh 4.1.0                  # 全量发布（阿里云 + Maven Central）
-#   ./deploy/release.sh verify 4.1.0           # 只验证远端是否发布成功（配合手动发布）
-#   ./deploy/release.sh bundle 4.1.0           # 只生成 Central 签名 bundle
+#   ./deploy/release.sh 17.0.0                  # 全量发布（阿里云 + Maven Central）
+#   ./deploy/release.sh verify 17.0.0           # 只验证远端是否发布成功（配合手动发布）
+#   ./deploy/release.sh bundle 17.0.0           # 只生成 Central 签名 bundle
 # =============================================================
 set -euo pipefail
 
@@ -66,20 +66,15 @@ guard_common() {
         *SNAPSHOT*) fail "版本号不能是 SNAPSHOT: ${VERSION}" ;;
     esac
     echo "${VERSION}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
-        || fail "版本号必须是 x.y.z 格式（基线即大版本，见 RELEASE_SKILL.md）: ${VERSION}"
+        || fail "版本号必须是 x.y.z 格式（主版本=Java 基线，见 RELEASE_SKILL.md）: ${VERSION}"
 
     local branch major
     branch="$(git -C "${PROJECT_ROOT}" rev-parse --abbrev-ref HEAD)"
     major="${VERSION%%.*}"
-    local expected=""
-    case "${major}" in
-        4) expected="main" ;;
-        3) expected="maintenance/3.x" ;;
-        2) expected="maintenance/2.x"
-           echo "    警告：2.x 线已 EOL，仅接受 bug 修复发布" ;;
-        *) fail "未知大版本 ${major}（只允许 2/3/4，见版本矩阵）" ;;
-    esac
-    [ "${branch}" = "${expected}" ] || fail "版本 ${VERSION} 应在分支 ${expected} 上发布，当前分支: ${branch}"
+    [ "${major}" -ge 17 ] \
+        || fail "大版本 ${major} 属历史版本线（2.x/3.x/4.x），已 EOL 不再发版（见版本矩阵）"
+    [ "${branch}" = "main" ] \
+        || fail "版本 ${VERSION} 只在 main 上发布，当前分支: ${branch}"
 
     if [ -z "${DRY_RUN}" ]; then
         git -C "${PROJECT_ROOT}" diff --quiet \
