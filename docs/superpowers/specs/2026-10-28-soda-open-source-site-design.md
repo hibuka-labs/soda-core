@@ -32,8 +32,8 @@ README 有损坏内容和错误徽章。
 
 1. **LICENSE**：三仓库统一 MIT（soda-core 已有；soda-template、soda-template-front 新增）。
 2. **README 双语规范**：`README.md`（英文，主）+ `README.zh-CN.md`（中文）。
-   - soda-core：替换现有 README-CN.md 命名；修复 README 中混入的 `}` 乱码段落；
-     修正 Maven Central 徽章坐标（现指向不存在的 `com.hibuka.soda:soda-core`，应为 `soda-core-base`）。
+   - soda-core：替换现有 README-CN.md 命名；修正 Maven Central 徽章坐标（现指向不存在的 `com.hibuka.soda:soda-core`，应为 `soda-core-base`）；
+     README 的 Requirements/构建章节与现状对齐（曾误报 README 有 `}` 乱码，经核实为终端显示问题，文件本身干净，无需修复）。
    - soda-template：现有中文 README 迁移为 README.zh-CN.md，新写英文 README.md。
    - soda-template-front：新写双语 README（现仅有 README-ENV.md，保留为内部环境文档或并入）。
 3. **敏感信息扫描**（开源前必须）：内网 URL（git@buka、packages.aliyun.com 等）、账号密码、
