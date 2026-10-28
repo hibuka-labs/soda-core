@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# =============================================================
+# soda-core 发布密钥配置（示例文件，入库）
+# 使用方法：复制为 deploy/release.local.sh 并填入真实值
+#   cp deploy/release.local.sh.example deploy/release.local.sh
+# release.local.sh 已被 .gitignore 忽略，绝不会入库
+# =============================================================
+
+# ---------- 阿里云私有仓库 ----------
+ALIYUN_REPO_URL="https://packages.aliyun.com/<你的空间>/maven/<你的仓库>"
+ALIYUN_REPO_USER="<阿里云仓库用户名>"
+ALIYUN_REPO_PASS="<阿里云仓库密码>"
+
+# ---------- Maven Central（Sonatype Central Portal 用户 Token） ----------
+# 在 https://central.sonatype.com → View Account → Generate User Token 生成
+CENTRAL_TOKEN_USER="<token 的 username>"
+CENTRAL_TOKEN_PASS="<token 的 password>"
+
+# ---------- 可选：验证轮询参数（默认 10 次 × 30s） ----------
+# VERIFY_RETRIES=10
+# VERIFY_INTERVAL=30

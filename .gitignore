@@ -246,3 +246,4 @@ local/
 dev-local/
 prod-local/docs/
 deploy.sh
+deploy/release.local.sh
