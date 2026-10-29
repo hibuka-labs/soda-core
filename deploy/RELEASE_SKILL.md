@@ -115,6 +115,32 @@ cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
 
 发 Central 后 repo1 短暂 404 是正常的（同步中）；Portal 状态 PUBLISHED 但超过 30 分钟仍拉不到 → 记实坑并排查。
 
+**冒烟可机械执行的配方（2026-10-29 实测）：**
+
+```bash
+# 1. 本地起生成服务（buka-template 仓库内）
+uv venv /tmp/buka-venv && uv pip install --python /tmp/buka-venv/bin/python -r requirements.txt
+/tmp/buka-venv/bin/python -m uvicorn app.main:app --port 8000
+
+# 2. 签名调用生成工程：POST /api/v1/templates/generate
+#    鉴权三头：X-API-Key / X-Timestamp(毫秒) / X-Signature
+#    签名 = HMAC-SHA256(secret, "{method}\n{path}\n{ts}\n{body}").hex，key 见 app/core/config.py
+#    body: {"template_type":"soda-simple","project_name":"smoke32",
+#           "context":{"package_name":"com.buka.demo","author":"smoke","spring_boot_version":"3.2"}}
+#    spring_boot_version 取 "3.2" 和 "4.0" 各生成一个
+
+# 3. 解压后 mvn package -DskipTests
+#    （模板自带 SLSTest 打阿里云 SLS 占位项目 your-project、CustomRedisTemplateTest
+#      切片缺 RedisConnectionFactory，离线必挂，与 soda 无关，待模板侧修）
+
+# 4. java -jar target/*.jar 起应用（dev profile=H2 内存库，Redis 可选）：
+#    curl :8080/check            → ok
+#    curl -X POST :8080/api/creatProducer -d '{"name":"smoke-test"}'   → 200 + uid
+#    curl -X POST :8080/api/getProducer   -d '{"uid":"<上面的uid>"}'   → 200 同一聚合
+```
+
+两个变体都走完 1~4 才算冒烟过；打不通的步骤记实坑。
+
 ---
 
 ## 裂线与移植（当前无任务；留存备用）
@@ -190,3 +216,4 @@ soda-core/
 - 2026-10-29 实坑：无 TTY 环境 `gpg -ab` 报 `Inappropriate ioctl for device` → 根因：密钥带口令、pinentry 只装了终端版 → 对策：装 pinentry-mac 写入 gpg-agent.conf（已补进「密钥与 git 忽略约定」）。
 - 2026-10-29 实坑：**POM-only 事故的防线缺口还在**——`verify` 只拉 POM（2.1.1-boot32 那种"POM 有 JAR 无"照样验过）、`prepare-maven-central-zip.sh` 缺 JAR 只警告继续（还能再打出 POM-only 包）、bundle 合并用 `*-repo-bundle.zip` 通配（旧版本残留 zip 会混进上传）→ 对策：release.sh 8b87522 已改——verify 同时拉 jar、缺 jar/sources/javadoc 直接失败、合并只取当前版本 zip、tag 幂等（分次 --target 不会撞 tag）。
 - 2026-10-29 实坑：`./deploy/release.sh ... | tee log` 把失败盖成成功（管道退出码取 tee 的），阿里云 409 那次第一眼没看出来 → 对策：执行注意已写进手册头部——要看退出码，别接管道。
+- 2026-10-29 冒烟实录：生成工程自带的 SLSTest（打阿里云 SLS 占位项目 your-project）和 CustomRedisTemplateTest（切片测试缺 RedisConnectionFactory）离线必挂 → 与 soda 无关（RedisTest/JacksonConfigTest 等 soda 路径用例全过）；对策：冒烟 `mvn package -DskipTests` 后启动打接口（配方见上），模板侧这两个用例待条件化。
