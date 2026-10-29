@@ -149,31 +149,35 @@ for module_info in "${MODULES[@]}"; do
       cp "${SNAPSHOT_JAR_FILE}" "${BUNDLE_DIR}/${ARTIFACT_ID}-${VERSION}.jar"
       echo "已复制 JAR: $(basename ${SNAPSHOT_JAR_FILE}) -> ${ARTIFACT_ID}-${VERSION}.jar"
     else
-      echo "警告: 未找到 JAR 文件 (${ARTIFACT_ID}-${VERSION}.jar 或 ${ARTIFACT_ID}-${RAW_VERSION}.jar)"
+      echo "错误: 未找到 JAR 文件 (${ARTIFACT_ID}-${VERSION}.jar 或 ${ARTIFACT_ID}-${RAW_VERSION}.jar)"
+      echo "      禁止打出 POM-only 包（2026-10-28 实坑：2.1.1-boot32 只传了 POM，公开用户解析必挂）"
+      exit 1
     fi
-    
+
     # 检查 Sources
     SRC_JAR="${TARGET_DIR}/${ARTIFACT_ID}-${VERSION}-sources.jar"
     SNAPSHOT_SRC_JAR="${TARGET_DIR}/${ARTIFACT_ID}-${RAW_VERSION}-sources.jar"
-    
+
     if [ -f "${SRC_JAR}" ]; then
       cp "${SRC_JAR}" "${BUNDLE_DIR}/"
     elif [ -f "${SNAPSHOT_SRC_JAR}" ]; then
       cp "${SNAPSHOT_SRC_JAR}" "${BUNDLE_DIR}/${ARTIFACT_ID}-${VERSION}-sources.jar"
     else
-      echo "警告: 未找到 Sources JAR"
+      echo "错误: 未找到 Sources JAR——Central 校验必需 sources/javadoc，缺则上传必被拒"
+      exit 1
     fi
-    
+
     # 检查 Javadoc
     DOC_JAR="${TARGET_DIR}/${ARTIFACT_ID}-${VERSION}-javadoc.jar"
     SNAPSHOT_DOC_JAR="${TARGET_DIR}/${ARTIFACT_ID}-${RAW_VERSION}-javadoc.jar"
-    
+
     if [ -f "${DOC_JAR}" ]; then
       cp "${DOC_JAR}" "${BUNDLE_DIR}/"
     elif [ -f "${SNAPSHOT_DOC_JAR}" ]; then
       cp "${SNAPSHOT_DOC_JAR}" "${BUNDLE_DIR}/${ARTIFACT_ID}-${VERSION}-javadoc.jar"
     else
-      echo "警告: 未找到 Javadoc JAR"
+      echo "错误: 未找到 Javadoc JAR——Central 校验必需 sources/javadoc，缺则上传必被拒"
+      exit 1
     fi
   fi
 

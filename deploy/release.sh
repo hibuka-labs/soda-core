@@ -53,10 +53,11 @@ say()  { echo ""; echo ">>> $*"; }
 fail() { echo ""; echo "!!! $*"; exit 1; }
 
 MODULES=(soda-core-parent soda-core-base soda-event-redis)
+JAR_MODULES=(soda-core-base soda-event-redis)   # 有 jar 产物的模块（parent 是 pom 打包，不查 jar）
 GROUP_PATH="com/hibuka/soda"
 
-artifact_url() { # $1=repo-url $2=artifact
-    echo "$1/${GROUP_PATH}/$2/${VERSION}/$2-${VERSION}.pom"
+artifact_url() { # $1=repo-url $2=artifact $3=扩展名（默认 pom）
+    echo "$1/${GROUP_PATH}/$2/${VERSION}/$2-${VERSION}.${3:-pom}"
 }
 
 # ---------- 守卫检查 ----------
@@ -149,6 +150,8 @@ publish_central() {
     if [ -n "${DRY_RUN}" ]; then echo "    (dry-run) 生成 bundle 并上传 Central Portal"; return; fi
 
     # 1. 复用现有签名打包流程（GPG 签名 + 校验和，生成 per-module repo-bundle.zip）
+    #    先清掉历史版本残留的 bundle，防止旧版本文件混入本次上传
+    rm -f "${PROJECT_ROOT}"/*-repo-bundle.zip
     (cd "${PROJECT_ROOT}" && bash prepare-maven-central-zip.sh)
 
     # 2. 合并为单个 deployment bundle（repo 布局可叠加）
@@ -157,7 +160,7 @@ publish_central() {
     merge="${work}/merged"
     mkdir -p "${merge}"
     local z
-    for z in "${PROJECT_ROOT}"/*-repo-bundle.zip; do
+    for z in "${PROJECT_ROOT}"/*-"${VERSION}"-repo-bundle.zip; do
         unzip -oq "${z}" -d "${merge}"
     done
     (cd "${merge}" && jar -cMf "${work}/soda-core-${VERSION}-central-bundle.zip" *)
@@ -218,13 +221,37 @@ verify_target() { # $1=目标
         [ -n "${ok}" ] || fail "${art} 在 ${1} 上拉取失败: ${url}"
         echo "    ${art} ✓  ${url}"
     done
+
+    # jar 产物同样必须拉得到——只验 POM 抓不到"POM-only"事故（见 RELEASE_SKILL.md 实坑 2026-10-28）
+    for art in "${JAR_MODULES[@]}"; do
+        ok=""
+        for ((retry=1; retry<=max_retry; retry++)); do
+            case "$1" in
+                aliyun)
+                    url="$(artifact_url "${ALIYUN_REPO_URL}" "${art}" jar)"
+                    if curl -sSf -o /dev/null -u "${ALIYUN_REPO_USER}:${ALIYUN_REPO_PASS}" "${url}"; then ok=1; break; fi ;;
+                central)
+                    url="$(artifact_url "https://repo1.maven.org/maven2" "${art}" jar)"
+                    if curl -sSf -o /dev/null "${url}"; then ok=1; break; fi ;;
+            esac
+            echo "    ${art}.jar: 远端尚未就绪（${retry}/${max_retry}），${interval}s 后重试…"
+            sleep "${interval}"
+        done
+        [ -n "${ok}" ] || fail "${art}.jar 在 ${1} 上拉取失败: ${url}"
+        echo "    ${art}.jar ✓  ${url}"
+    done
 }
 
 # ---------- 打 tag ----------
 do_tag() {
     say "打 tag 并推送"
     if [ -n "${DRY_RUN}" ]; then echo "    (dry-run) git tag v${VERSION} && git push origin v${VERSION}"; return; fi
-    git tag "v${VERSION}"
+    # 幂等：分次 --target 发布时 tag 可能已由前一次创建
+    if git -C "${PROJECT_ROOT}" rev-parse "v${VERSION}" >/dev/null 2>&1; then
+        echo "    tag v${VERSION} 已存在，跳过创建"
+    else
+        git tag "v${VERSION}"
+    fi
     git push origin "v${VERSION}"
     echo "    v${VERSION} ✓"
 }
