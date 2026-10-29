@@ -2,6 +2,7 @@
 
 > 使用方式：发布时把本文件拖进对话，说"发布 x.y.z"，AI 按本手册执行。
 > 本手册自包含，不依赖其他上下文。踩坑后把教训补进文末「实坑记录」。
+> 执行注意：跑 release.sh 要看**退出码**——别接 `| tee` 这类管道（管道退出码是最后一个命令的，会把失败盖成成功）；要留日志就 `./deploy/release.sh x.y.z > /tmp/release.log 2>&1`。
 
 **涉及工程（三个平级 git 仓库）：**
 
@@ -41,14 +42,23 @@
 
 ## 发布前检查清单
 
-- [ ] `mvn clean verify` 本地全绿（测试不过就别发）
+- [ ] `mvn clean verify` 本地全绿（测试不过就别发；默认流程里 release.sh 会再跑一遍）
 - [ ] 版本号符合矩阵：x.y.z、大版本 ≥ 17 且在 `main` 上
-- [ ] 本轮版本号未与已发布冲突（阿里云 + Central 各搜一下）
+- [ ] 本轮版本号未与已发布冲突（阿里云 + Central 各搜一下）→ 冲突处理规则见下
 - [ ] `deploy/release.local.sh` 已配置（从 `release.local.sh.example` 复制）
-- [ ] README / README.zh-CN 的安装示例版本号和兼容矩阵需要更新吗？
-- [ ] 有用户可见变更 → 写 CHANGELOG 条目
+- [ ] README.md / README-CN.md 的安装示例版本号和兼容矩阵需要更新吗？（动手改在发布后，见「发布后」）
+- [ ] 有用户可见变更 → 写 CHANGELOG.md 条目（仓库已建 CHANGELOG.md）
 - [ ] 破坏性变更？→ 是否该攒到裂线（**主线永不为兼容妥协**，双线兼容做不了的明确记入实坑）
-- [ ] git 工作区干净、在 `main` 上
+- [ ] git 工作区干净、在 `main` 上、**已推送到 origin**（脚本只 push tag 不 push branch，本地落后的提交会只挂在 tag 上）
+
+**冲突处理规则（两边语义不同，别混）：**
+
+| 仓库 | 已存在同版本时 | 处理 |
+|---|---|---|
+| Maven Central | 版本永久占用，**不可删不可覆盖** | 必须换版本号（x.y.z+1） |
+| 阿里云 | 默认禁止覆盖（deploy 返回 **409**），但内容可删可覆盖 | **先比对远端内容**（pom + jar 与本地构建 diff）：内容就是本轮要发的 → 跳过部署只做验证；内容过期/不一致 → 控制台删该版本产物、或临时开「允许重复部署」后重发 |
+
+比对内容这步不能省——只查"存不存在"会漏掉"存在但是旧产物"（2026-10-29 实坑：阿里云 17.0.0 是版本摇摆期的试验产物，缺 EventSerializer）。
 
 ---
 
@@ -77,8 +87,8 @@ cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
 
 ### 2. 发布后
 
-- [ ] buka-template 两个模板（`templates/*/pom.xml.jinja`）的 `soda.version` pin 更新（统一 pin，一个版本号）
-- [ ] README.md / README.zh-CN.md 兼容矩阵与安装示例
+- [ ] buka-template 两个模板（`templates/soda-simple/pom.xml.jinja`、`templates/scoda-cloud/pom.xml.jinja`）的 `soda.version` pin 更新（统一 pin，一个版本号）
+- [ ] README.md / README-CN.md 兼容矩阵与安装示例
 - [ ] 本轮摘要发给用户：发了什么、跳过了什么、为什么
 
 ---
@@ -100,7 +110,7 @@ cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
 | 层 | 手段 | 证明什么 |
 |---|---|---|
 | 回执 | deploy/上传 API 的返回码与状态 | 仓库收下了 |
-| 拉取 | 从**远端**强制拉回 pom（`verify` 子命令） | 用户真的能解析到（Central 同步延迟约 10~30 分钟，脚本会重试） |
+| 拉取 | 从**远端**强制拉回 pom **+ jar**（`verify` 子命令；jar 才是用户真正要的，只验 POM 抓不到"POM-only"事故） | 用户真的能解析到（Central 同步延迟约 10~30 分钟，脚本会重试） |
 | 冒烟 | 用 buka-template 生成钉住新版本的示例工程（**Boot 3.2 与 4.0 两个变体都跑**），`mvn package` 启动打接口 | 端到端能用 |
 
 发 Central 后 repo1 短暂 404 是正常的（同步中）；Portal 状态 PUBLISHED 但超过 30 分钟仍拉不到 → 记实坑并排查。
@@ -145,6 +155,8 @@ cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
 
 **约定：任何含密钥的脚本/配置一律 gitignore；入库文件零明文密钥。** 旧 `deploy.sh` 含阿里云明文密码（已 gitignore、未跟踪），建议尽快轮换密码后删除。
 
+**GPG 签名自动化前提（macOS）**：密钥带口令且无 TTY 时 `gpg -ab` 会报 `Inappropriate ioctl for device`。解法：`brew install pinentry-mac` 并在 `~/.gnupg/gpg-agent.conf` 写 `pinentry-program /opt/homebrew/bin/pinentry-mac`，签名时弹一次图形框输口令，同一次发布内自动复用。
+
 ---
 
 ## 目录速查
@@ -163,6 +175,7 @@ soda-core/
 ```
 
 根目录的 `*-repo-bundle.zip`、`.zip-workspace/`、`log.txt`、`maven-migration.log` 都是构建垃圾（已被 gitignore），可随时删。
+根目录的 `pom-2.3.xml`、`pom-2.7.xml`、`pom-3.2.xml`、`pom-profile.xml`、`package-*.sh` 是**历史构建残留（仍被 git 跟踪）**——多 POM 工作流已废弃，待重写 README「编译和构建」章节时一并清理。
 
 ---
 
@@ -172,3 +185,7 @@ soda-core/
 
 - 2026-10-28 实坑：Maven Central 上 `2.1.1-boot32` **只有 POM 没有 JAR**（当年打包只传了 POM）→ 公开用户解析必挂 → 对策：弃用该版本（旧线用户用 `2.1.0-boot32`，jar 完好）；Central 版本不可删，只能靠新版本顶替。
 - 2026-10-28 实坑：版本方案在"Boot 基线制"与"Java 基线制"间摇摆过一轮（pom 曾是 17.0，发布工具按 4.x 写，互相拧巴）→ 根因：Jackson 2→3 解耦后一套 jar 可双线，版本轴选错 → 对策：定稿 **Java 基线制**（主版本=Java 基线），版本矩阵、release.sh 守卫、模板 pin 已全部改齐。
+- 2026-10-29 实坑：阿里云已有一份 17.0.0 但**内容过期**（摇摆期试验部署：缺 EventSerializer、还带 SmartCircularReferenceSerializerModifier 和 Jackson 依赖），且仓库默认禁止覆盖，`mvn deploy` 返回 **409**，set -e 直接把流程掐死在阿里云步（连 Central 都没发）→ 根因：冲突检查只看了"存不存在"没比对内容；覆盖策略没写进手册 → 对策：清单新增**冲突处理规则表**（Central 必换版本 / 阿里云先比对内容再决定删旧重发或跳过）；控制台开「允许重复部署」后重发正确内容。
+- 2026-10-29 实坑：无 TTY 环境 `gpg -ab` 报 `Inappropriate ioctl for device` → 根因：密钥带口令、pinentry 只装了终端版 → 对策：装 pinentry-mac 写入 gpg-agent.conf（已补进「密钥与 git 忽略约定」）。
+- 2026-10-29 实坑：**POM-only 事故的防线缺口还在**——`verify` 只拉 POM（2.1.1-boot32 那种"POM 有 JAR 无"照样验过）、`prepare-maven-central-zip.sh` 缺 JAR 只警告继续（还能再打出 POM-only 包）、bundle 合并用 `*-repo-bundle.zip` 通配（旧版本残留 zip 会混进上传）→ 对策：release.sh 8b87522 已改——verify 同时拉 jar、缺 jar/sources/javadoc 直接失败、合并只取当前版本 zip、tag 幂等（分次 --target 不会撞 tag）。
+- 2026-10-29 实坑：`./deploy/release.sh ... | tee log` 把失败盖成成功（管道退出码取 tee 的），阿里云 409 那次第一眼没看出来 → 对策：执行注意已写进手册头部——要看退出码，别接管道。
