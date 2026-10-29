@@ -2,9 +2,9 @@
 
 [English](README.md) | [中文文档](README-CN.md)
 
-[![Maven Central](https://img.shields.io/maven-central/v/com.hibuka.soda/soda-core.svg)](https://search.maven.org/artifact/com.hibuka.soda/soda-core)
+[![Maven Central](https://img.shields.io/maven-central/v/com.hibuka.soda/soda-core-base.svg)](https://search.maven.org/artifact/com.hibuka.soda/soda-core-base)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java](https://img.shields.io/badge/Java-8+-blue.svg)](https://www.oracle.com/java/)
+[![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://www.oracle.com/java/)
 
 A Spring Boot starter for Domain-Driven Design (DDD) with CQRS, event-driven architecture, and enterprise best practices. This library helps you quickly build high-cohesion, easily extensible microservice systems.
 
@@ -21,8 +21,8 @@ A Spring Boot starter for Domain-Driven Design (DDD) with CQRS, event-driven arc
 
 ## Requirements
 
-- Java 8 or higher
-- Spring Boot 2.3.12.RELEASE or higher (Recommended: 2.7.18)
+- Java 17 or higher (recommended 21)
+- Spring Boot 3.2.x ~ 4.1.x (a single jar covers both the 3.x and 4.x lines)
 - Maven 3.6+ or Gradle 6+
 
 ## Installation
@@ -30,17 +30,28 @@ A Spring Boot starter for Domain-Driven Design (DDD) with CQRS, event-driven arc
 ### Maven
 
 ```xml
+<properties>
+    <soda.version>17.0.0</soda.version>
+</properties>
+
 <dependency>
     <groupId>com.hibuka.soda</groupId>
-    <artifactId>soda-core</artifactId>
-    <version>2.0.0</version>
+    <artifactId>soda-core-base</artifactId>
+    <version>${soda.version}</version>
+</dependency>
+<!-- Redis event bus (if you use domain events with Redis Streams) -->
+<dependency>
+    <groupId>com.hibuka.soda</groupId>
+    <artifactId>soda-event-redis</artifactId>
+    <version>${soda.version}</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'com.hibuka.soda:soda-core:2.0.0'
+implementation 'com.hibuka.soda:soda-core-base:17.0.0'
+implementation 'com.hibuka.soda:soda-event-redis:17.0.0'
 ```
 
 ## Project Structure
@@ -214,8 +225,8 @@ public class UserNotFoundException extends BaseException {
 
 If you're upgrading from scoda-ddd-starter:
 
-1. Update your dependency artifactId to `soda-core`
-2. Update your dependency version to `2.0.0`
+1. Update your dependency artifactId to `soda-core-base` (plus `soda-event-redis` if you use the Redis event bus)
+2. Update your dependency version to `17.0.0`
 3. No breaking changes are expected
 4. Review the changelog for any new features
 
@@ -294,13 +305,13 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## Changelog
 
-### [2.0.0] - 2024-09-13
-- Spring Boot 3.2.12 support (Java 17)
-- CQRS support with command/query buses
-- Domain event abstractions
-- Spring Boot auto-configuration
-- Thread pool configuration support
-- Multi-version POM configuration support
+See [CHANGELOG.md](CHANGELOG.md) for the full release history.
+
+Highlights of `17.0.0` (the first release under the Java-baseline versioning scheme):
+
+- Single jar supporting both Spring Boot 3.2.x (Jackson 2) and Spring Boot 4.x (Jackson 3)
+- `EventSerializer` abstraction decoupling soda-event-redis from Jackson
+- Minimum Java 17 (recommended 21)
 
 ## License
 
@@ -324,8 +335,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Version Compatibility
 
-| soda-core Version | Supported Spring Boot Version | Java Version |
-|-------------------|-------------------------------|--------------|
-| 1.0.0                    | 2.3.12.RELEASE                | Java 8       |
-| 1.1.0                    | 2.7.18                        | Java 8       |
-| 2.0.0                    | 3.2.12                        | Java 17      |
+Versioning follows the Java-baseline scheme: `<Java-major>.<feature>.<patch>`.
+
+| soda-core Version | Supported Spring Boot Version | Java Version | Status |
+|-------------------|-------------------------------|--------------|--------|
+| `17.x` (current)  | 3.2.x ~ 4.1.x (single jar)    | 17+ (recommended 21) | ✅ Active |
+| `4.0.0`           | 4.x                           | 21           | ⛔ EOL (historical) |
+| `2.1.x-boot32`    | 3.2.x                         | 8            | ⛔ EOL (`2.1.1-boot32` is POM-only on Central, use `2.1.0-boot32`) |
+| `2.0.0` / `2.1.0` | 2.x                           | 8            | ⛔ EOL |

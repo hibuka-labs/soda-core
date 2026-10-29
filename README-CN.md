@@ -2,9 +2,9 @@
 
 [English](README.md) | [中文文档](README-CN.md)
 
-[![Maven Central](https://img.shields.io/maven-central/v/com.hibuka.soda/soda-core.svg)](https://search.maven.org/artifact/com.hibuka.soda/soda-core)
+[![Maven Central](https://img.shields.io/maven-central/v/com.hibuka.soda/soda-core-base.svg)](https://search.maven.org/artifact/com.hibuka.soda/soda-core-base)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java](https://img.shields.io/badge/Java-8+-blue.svg)](https://www.oracle.com/java/)
+[![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://www.oracle.com/java/)
 
 一个基于Spring Boot的领域驱动设计（DDD）启动器，支持CQRS、事件驱动架构和企业级最佳实践。该库帮助您快速构建高内聚、易扩展的微服务系统。
 
@@ -21,8 +21,8 @@
 
 ## 系统要求
 
-- Java 8 或更高版本
-- Spring Boot 2.3.12.RELEASE 或更高版本（推荐2.7.18）
+- Java 17 或更高版本（推荐 21）
+- Spring Boot 3.2.x ~ 4.1.x（一套 jar 同时支持 3.x 与 4.x 线）
 - Maven 3.6+ 或 Gradle 6+
 
 ## 安装
@@ -30,17 +30,28 @@
 ### Maven
 
 ```xml
+<properties>
+    <soda.version>17.0.0</soda.version>
+</properties>
+
 <dependency>
     <groupId>com.hibuka.soda</groupId>
-    <artifactId>soda-core</artifactId>
-    <version>2.0.0</version>
+    <artifactId>soda-core-base</artifactId>
+    <version>${soda.version}</version>
+</dependency>
+<!-- Redis 事件总线（如使用 Redis Streams 领域事件） -->
+<dependency>
+    <groupId>com.hibuka.soda</groupId>
+    <artifactId>soda-event-redis</artifactId>
+    <version>${soda.version}</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'com.hibuka.soda:soda-core:2.0.0'
+implementation 'com.hibuka.soda:soda-core-base:17.0.0'
+implementation 'com.hibuka.soda:soda-event-redis:17.0.0'
 ```
 
 ## 项目结构
@@ -214,7 +225,7 @@ public class UserNotFoundException extends BaseException {
 
 如果您正在从SNAPSHOT版本升级：
 
-1. 将依赖版本更新为 `2.0.0`
+1. 将依赖版本更新为 `17.0.0`
 2. 预计不会有破坏性变更
 3. 查看更新日志了解新功能
 
@@ -293,13 +304,13 @@ mvn clean deploy -Prelease
 
 ## 更新日志
 
-### [2.0.0] - 2024-09-13
-- Spring Boot 3.2.12 支持（Java 17）
-- 支持CQRS的命令/查询总线
-- 领域事件抽象
-- Spring Boot自动配置
-- 线程池配置支持
-- 多版本POM配置支持
+完整发布历史见 [CHANGELOG.md](CHANGELOG.md)。
+
+`17.0.0`（Java 基线版本方案首个版本）亮点：
+
+- 一套 jar 同时支持 Spring Boot 3.2.x（Jackson 2）与 Spring Boot 4.x（Jackson 3）
+- `EventSerializer` 抽象让 soda-event-redis 与 Jackson 解耦
+- 最低 Java 17（推荐 21）
 
 ## 许可证
 
@@ -323,8 +334,11 @@ mvn clean deploy -Prelease
 
 ## 版本兼容性
 
-| soda-core 版本 | 支持的 Spring Boot 版本      | Java 版本 |
-|-----------------------|------------------------------|-----------|
-| 1.0.0                 | 2.3.12.RELEASE               | Java 8    |
-| 1.1.0                 | 2.7.18                       | Java 8    |
-| 2.0.0                 | 3.2.12                       | Java 17   | 
+版本命名遵循 Java 基线制：`<Java主版本>.<功能迭代>.<修复>`。
+
+| soda-core 版本 | 支持的 Spring Boot 版本 | Java 版本 | 状态 |
+|-----------------------|------------------------------|-----------|------|
+| `17.x`（当前活跃） | 3.2.x ~ 4.1.x（一套 jar） | 17+（推荐 21） | ✅ 活跃 |
+| `4.0.0` | 4.x | 21 | ⛔ EOL（历史） |
+| `2.1.x-boot32` | 3.2.x | 8 | ⛔ EOL（`2.1.1-boot32` 在 Central 只有 POM，请用 `2.1.0-boot32`） |
+| `2.0.0` / `2.1.0` | 2.x | 8 | ⛔ EOL |
