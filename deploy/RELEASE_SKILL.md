@@ -56,7 +56,7 @@
 | 仓库 | 已存在同版本时 | 处理 |
 |---|---|---|
 | Maven Central | 版本永久占用，**不可删不可覆盖** | 必须换版本号（x.y.z+1） |
-| 阿里云 | 默认禁止覆盖（deploy 返回 **409**），但内容可删可覆盖 | **先比对远端内容**（pom + jar 与本地构建 diff）：内容就是本轮要发的 → 跳过部署只做验证；内容过期/不一致 → 控制台删该版本产物、或临时开「允许重复部署」后重发 |
+| 阿里云 | 默认禁止覆盖（deploy 返回 **409**），但内容可删可覆盖 | **先比对远端内容**（pom + jar 与本地构建 diff）：内容就是本轮要发的 → 跳过部署只做验证；内容过期/不一致 → **控制台**删该版本产物、或临时开「允许重复部署」后重发（HTTP DELETE 删不掉，API 直接回 **405**，别浪费时间试） |
 
 比对内容这步不能省——只查"存不存在"会漏掉"存在但是旧产物"（2026-10-29 实坑：阿里云 17.0.0 是版本摇摆期的试验产物，缺 EventSerializer）。
 
@@ -185,7 +185,7 @@ soda-core/
 
 - 2026-10-28 实坑：Maven Central 上 `2.1.1-boot32` **只有 POM 没有 JAR**（当年打包只传了 POM）→ 公开用户解析必挂 → 对策：弃用该版本（旧线用户用 `2.1.0-boot32`，jar 完好）；Central 版本不可删，只能靠新版本顶替。
 - 2026-10-28 实坑：版本方案在"Boot 基线制"与"Java 基线制"间摇摆过一轮（pom 曾是 17.0，发布工具按 4.x 写，互相拧巴）→ 根因：Jackson 2→3 解耦后一套 jar 可双线，版本轴选错 → 对策：定稿 **Java 基线制**（主版本=Java 基线），版本矩阵、release.sh 守卫、模板 pin 已全部改齐。
-- 2026-10-29 实坑：阿里云已有一份 17.0.0 但**内容过期**（摇摆期试验部署：缺 EventSerializer、还带 SmartCircularReferenceSerializerModifier 和 Jackson 依赖），且仓库默认禁止覆盖，`mvn deploy` 返回 **409**，set -e 直接把流程掐死在阿里云步（连 Central 都没发）→ 根因：冲突检查只看了"存不存在"没比对内容；覆盖策略没写进手册 → 对策：清单新增**冲突处理规则表**（Central 必换版本 / 阿里云先比对内容再决定删旧重发或跳过）；控制台开「允许重复部署」后重发正确内容。
+- 2026-10-29 实坑：阿里云已有一份 17.0.0 但**内容过期**（摇摆期试验部署：缺 EventSerializer、还带 SmartCircularReferenceSerializerModifier 和 Jackson 依赖），且仓库默认禁止覆盖，`mvn deploy` 返回 **409**，set -e 直接把流程掐死在阿里云步（连 Central 都没发）→ 根因：冲突检查只看了"存不存在"没比对内容；覆盖策略没写进手册 → 对策：清单新增**冲突处理规则表**（Central 必换版本 / 阿里云先比对内容再决定删旧重发或跳过）；控制台开「允许重复部署」后重发正确内容。附：HTTP DELETE 删旧产物全部返回 **405**（packages 仓库不支持该动词，部署凭据也不行），清旧只能控制台操作。
 - 2026-10-29 实坑：无 TTY 环境 `gpg -ab` 报 `Inappropriate ioctl for device` → 根因：密钥带口令、pinentry 只装了终端版 → 对策：装 pinentry-mac 写入 gpg-agent.conf（已补进「密钥与 git 忽略约定」）。
 - 2026-10-29 实坑：**POM-only 事故的防线缺口还在**——`verify` 只拉 POM（2.1.1-boot32 那种"POM 有 JAR 无"照样验过）、`prepare-maven-central-zip.sh` 缺 JAR 只警告继续（还能再打出 POM-only 包）、bundle 合并用 `*-repo-bundle.zip` 通配（旧版本残留 zip 会混进上传）→ 对策：release.sh 8b87522 已改——verify 同时拉 jar、缺 jar/sources/javadoc 直接失败、合并只取当前版本 zip、tag 幂等（分次 --target 不会撞 tag）。
 - 2026-10-29 实坑：`./deploy/release.sh ... | tee log` 把失败盖成成功（管道退出码取 tee 的），阿里云 409 那次第一眼没看出来 → 对策：执行注意已写进手册头部——要看退出码，别接管道。
