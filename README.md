@@ -31,7 +31,7 @@ A Spring Boot starter for Domain-Driven Design (DDD) with CQRS, event-driven arc
 
 ```xml
 <properties>
-    <soda.version>17.0.0</soda.version>
+    <soda.version>17.0.1</soda.version>
 </properties>
 
 <dependency>
@@ -50,8 +50,8 @@ A Spring Boot starter for Domain-Driven Design (DDD) with CQRS, event-driven arc
 ### Gradle
 
 ```gradle
-implementation 'com.hibuka.soda:soda-core-base:17.0.0'
-implementation 'com.hibuka.soda:soda-event-redis:17.0.0'
+implementation 'com.hibuka.soda:soda-core-base:17.0.1'
+implementation 'com.hibuka.soda:soda-event-redis:17.0.1'
 ```
 
 ## Project Structure
@@ -226,7 +226,7 @@ public class UserNotFoundException extends BaseException {
 If you're upgrading from scoda-ddd-starter:
 
 1. Update your dependency artifactId to `soda-core-base` (plus `soda-event-redis` if you use the Redis event bus)
-2. Update your dependency version to `17.0.0`
+2. Update your dependency version to `17.0.1`
 3. No breaking changes are expected
 4. Review the changelog for any new features
 
@@ -307,7 +307,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
-Highlights of `17.0.0` (the first release under the Java-baseline versioning scheme):
+Highlights of `17.0.1` (the first release under the Java-baseline versioning scheme):
 
 - Single jar supporting both Spring Boot 3.2.x (Jackson 2) and Spring Boot 4.x (Jackson 3)
 - `EventSerializer` abstraction decoupling soda-event-redis from Jackson

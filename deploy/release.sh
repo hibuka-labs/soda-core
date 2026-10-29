@@ -10,9 +10,9 @@
 #   ./deploy/release.sh bundle <version>
 #
 # 示例:
-#   ./deploy/release.sh 17.0.0                  # 全量发布（阿里云 + Maven Central）
-#   ./deploy/release.sh verify 17.0.0           # 只验证远端是否发布成功（配合手动发布）
-#   ./deploy/release.sh bundle 17.0.0           # 只生成 Central 签名 bundle
+#   ./deploy/release.sh 17.0.1                  # 全量发布（阿里云 + Maven Central）
+#   ./deploy/release.sh verify 17.0.1           # 只验证远端是否发布成功（配合手动发布）
+#   ./deploy/release.sh bundle 17.0.1           # 只生成 Central 签名 bundle
 # =============================================================
 set -euo pipefail
 

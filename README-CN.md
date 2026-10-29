@@ -31,7 +31,7 @@
 
 ```xml
 <properties>
-    <soda.version>17.0.0</soda.version>
+    <soda.version>17.0.1</soda.version>
 </properties>
 
 <dependency>
@@ -50,8 +50,8 @@
 ### Gradle
 
 ```gradle
-implementation 'com.hibuka.soda:soda-core-base:17.0.0'
-implementation 'com.hibuka.soda:soda-event-redis:17.0.0'
+implementation 'com.hibuka.soda:soda-core-base:17.0.1'
+implementation 'com.hibuka.soda:soda-event-redis:17.0.1'
 ```
 
 ## 项目结构
@@ -225,7 +225,7 @@ public class UserNotFoundException extends BaseException {
 
 如果您正在从SNAPSHOT版本升级：
 
-1. 将依赖版本更新为 `17.0.0`
+1. 将依赖版本更新为 `17.0.1`
 2. 预计不会有破坏性变更
 3. 查看更新日志了解新功能
 
@@ -306,7 +306,7 @@ mvn clean deploy -Prelease
 
 完整发布历史见 [CHANGELOG.md](CHANGELOG.md)。
 
-`17.0.0`（Java 基线版本方案首个版本）亮点：
+`17.0.1`（Java 基线版本方案首个版本）亮点：
 
 - 一套 jar 同时支持 Spring Boot 3.2.x（Jackson 2）与 Spring Boot 4.x（Jackson 3）
 - `EventSerializer` 抽象让 soda-event-redis 与 Jackson 解耦

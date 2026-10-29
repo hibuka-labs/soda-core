@@ -3,7 +3,7 @@
 All notable changes to soda-core are documented here.
 Versioning follows the Java-baseline scheme: `<Java-major>.<feature>.<patch>`.
 
-## 17.0.0 — 2026-10-29
+## 17.0.1 — 2026-10-29
 
 First release under the Java-baseline versioning scheme.
 Minimum Java 17 (recommended 21); supports Spring Boot 3.2.x ~ 4.1.x with a single jar.
@@ -26,6 +26,9 @@ Minimum Java 17 (recommended 21); supports Spring Boot 3.2.x ~ 4.1.x with a sing
 
 ## Earlier versions (historical lines, EOL)
 
+- `17.0.0` — ⚠️ superseded by `17.0.1`: a stale internal build accidentally deployed to the
+  Aliyun repo during the version-scheme migration (missing the `EventSerializer` decoupling).
+  Never published to Maven Central. Do not use.
 - `4.0.0` — Spring Boot 4.x single line (pre-rename snapshot of the current code)
 - `2.1.1-boot32` — ⚠️ POM-only on Maven Central, do not use (use `2.1.0-boot32`)
 - `2.1.0-boot32` — Spring Boot 3.2.x line (Java 8)
