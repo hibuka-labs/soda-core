@@ -1,16 +1,11 @@
-# Release Skill — soda 系列发布手册
+# Release Skill — soda-core 发布手册
 
-> 使用方式：发布时把本文件拖进对话，说"发布 x.y.z"，AI 按本手册执行。
+> 使用方式：发布 soda-core 时把本文件拖进对话，说"发布 x.y.z"，AI 按本手册执行。
+> 本手册只管 **soda-core 的 jar 发布**（Maven Central + 阿里云 Maven 仓库）。发布后的模板 pin 更新与生成器重新部署归 buka-template 管，见 `../../buka-template/RELEASE_SKILL.md`（两份手册互为交叉引用）。
 > 本手册自包含，不依赖其他上下文。踩坑后把教训补进文末「实坑记录」。
 > 执行注意：跑 release.sh 要看**退出码**——别接 `| tee` 这类管道（管道退出码是最后一个命令的，会把失败盖成成功）；要留日志就 `./deploy/release.sh x.y.z > /tmp/release.log 2>&1`。
 
-**涉及工程（三个平级 git 仓库）：**
-
-| 工程 | 路径 | 角色 |
-|---|---|---|
-| soda-core | `/Users/kangzengchen/source/buka/buka-works/soda/soda-core` | 发布主体（jar：soda-core-base、soda-event-redis） |
-| buka-template | `/Users/kangzengchen/source/buka/buka-works/soda/buka-template` | 项目生成器（FastAPI，部署函数计算），发布后更新模板里的 `soda.version` pin |
-| soda-template-front | `/Users/kangzengchen/source/buka/buka-works/soda/soda-template-front` | 生成器前端（React，部署 OSS），一般不随 jar 发版变动 |
+**关联工程（不归本手册管，只留指针）：** buka-template（`../../buka-template`，FastAPI 项目生成器，部署函数计算；模板里的 `soda.version` pin 随 soda-core 发版更新，流程见其 `RELEASE_SKILL.md`）、soda-template-front（`../../soda-template-front`，生成器前端，部署 OSS，一般不随 jar 发版变动）。
 
 ---
 
@@ -18,7 +13,7 @@
 
 ```
 发布前检查 → main 上出版本（脚本：构建/发布/验证/打 tag）
-           → 更新 buka-template 模板 pin + README 版本矩阵
+           → 更新 buka-template 模板 pin（改法与重部署见 ../../buka-template/RELEASE_SKILL.md）+ README 版本矩阵
 ```
 
 ---
@@ -87,7 +82,7 @@ cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
 
 ### 2. 发布后
 
-- [ ] buka-template 两个模板（`templates/soda-simple/pom.xml.jinja`、`templates/scoda-cloud/pom.xml.jinja`）的 `soda.version` pin 更新（统一 pin，一个版本号）
+- [ ] buka-template 两个模板（`templates/soda-simple/pom.xml.jinja`、`templates/scoda-cloud/pom.xml.jinja`）的 `soda.version` pin 更新（统一 pin，一个版本号）——**改完 git 不等于生效**，还要按 buka-template 手册重新打包上传 function_code.zip（细节见 `../../buka-template/RELEASE_SKILL.md`「soda-core 发版联动」）
 - [ ] README.md / README-CN.md 兼容矩阵与安装示例
 - [ ] 本轮摘要发给用户：发了什么、跳过了什么、为什么
 
@@ -123,8 +118,8 @@ uv venv /tmp/buka-venv && uv pip install --python /tmp/buka-venv/bin/python -r r
 /tmp/buka-venv/bin/python -m uvicorn app.main:app --port 8000
 
 # 2. 签名调用生成工程：POST /api/v1/templates/generate
-#    鉴权三头：X-API-Key / X-Timestamp(毫秒) / X-Signature
-#    签名 = HMAC-SHA256(secret, "{method}\n{path}\n{ts}\n{body}").hex，key 见 app/core/config.py
+#    HMAC 鉴权三头 + 签名算法（X-API-Key / X-Timestamp 毫秒 / X-Signature）见
+#    ../../buka-template/RELEASE_SKILL.md「验证」节的签名配方
 #    body: {"template_type":"soda-simple","project_name":"smoke32",
 #           "context":{"package_name":"com.buka.demo","author":"smoke","spring_boot_version":"3.2"}}
 #    spring_boot_version 取 "3.2" 和 "4.0" 各生成一个
@@ -190,7 +185,7 @@ uv venv /tmp/buka-venv && uv pip install --python /tmp/buka-venv/bin/python -r r
 ```
 soda-core/
 ├── deploy/
-│   ├── RELEASE_SKILL.md          # 本手册
+│   ├── RELEASE_SKILL.md          # 本手册（仅 soda-core 发布；生成器发版见 ../../buka-template/RELEASE_SKILL.md）
 │   ├── release.sh                # 发布脚本（入库）
 │   ├── release.local.sh          # 密钥（gitignore，自行从 example 复制）
 │   └── release.local.sh.example
@@ -216,4 +211,4 @@ soda-core/
 - 2026-10-29 实坑：无 TTY 环境 `gpg -ab` 报 `Inappropriate ioctl for device` → 根因：密钥带口令、pinentry 只装了终端版 → 对策：装 pinentry-mac 写入 gpg-agent.conf（已补进「密钥与 git 忽略约定」）。
 - 2026-10-29 实坑：**POM-only 事故的防线缺口还在**——`verify` 只拉 POM（2.1.1-boot32 那种"POM 有 JAR 无"照样验过）、`prepare-maven-central-zip.sh` 缺 JAR 只警告继续（还能再打出 POM-only 包）、bundle 合并用 `*-repo-bundle.zip` 通配（旧版本残留 zip 会混进上传）→ 对策：release.sh 8b87522 已改——verify 同时拉 jar、缺 jar/sources/javadoc 直接失败、合并只取当前版本 zip、tag 幂等（分次 --target 不会撞 tag）。
 - 2026-10-29 实坑：`./deploy/release.sh ... | tee log` 把失败盖成成功（管道退出码取 tee 的），阿里云 409 那次第一眼没看出来 → 对策：执行注意已写进手册头部——要看退出码，别接管道。
-- 2026-10-29 冒烟实录：生成工程自带的 SLSTest（打阿里云 SLS 占位项目 your-project）和 CustomRedisTemplateTest（切片测试缺 RedisConnectionFactory）离线必挂 → 与 soda 无关（RedisTest/JacksonConfigTest 等 soda 路径用例全过）；对策：冒烟 `mvn package -DskipTests` 后启动打接口（配方见上），模板侧这两个用例待条件化。
+- 2026-10-29 冒烟实录：生成工程自带的 SLSTest（打阿里云 SLS 占位项目 your-project）和 CustomRedisTemplateTest（切片测试缺 RedisConnectionFactory）离线必挂 → 与 soda 无关（RedisTest/JacksonConfigTest 等 soda 路径用例全过）；对策：冒烟 `mvn package -DskipTests` 后启动打接口（配方见上）；这两个用例是模板自带缺陷，条件化待办记在 `../../buka-template/RELEASE_SKILL.md` 实坑记录。
