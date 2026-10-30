@@ -114,8 +114,10 @@ cd /Users/kangzengchen/source/buka/buka-works/soda/soda-core
 
 ```bash
 # 1. 本地起生成服务（buka-template 仓库内）
+#    端口别用 8000/8001——前端 dev server 常驻占着，会打到别人身上
 uv venv /tmp/buka-venv && uv pip install --python /tmp/buka-venv/bin/python -r requirements.txt
-/tmp/buka-venv/bin/python -m uvicorn app.main:app --port 8000
+/tmp/buka-venv/bin/python -m uvicorn app.main:app --port 8123   # 冷端口
+#    核对 /health 返回 {"status":"ok"}（带 timestamp 的是别的服务，说明端口被占）
 
 # 2. 签名调用生成工程：POST /api/v1/templates/generate
 #    HMAC 鉴权三头 + 签名算法（X-API-Key / X-Timestamp 毫秒 / X-Signature）见
@@ -130,7 +132,7 @@ uv venv /tmp/buka-venv && uv pip install --python /tmp/buka-venv/bin/python -r r
 
 # 4. java -jar target/*.jar 起应用（dev profile=H2 内存库，Redis 可选）：
 #    curl :8080/check            → ok
-#    curl -X POST :8080/api/creatProducer -d '{"name":"smoke-test"}'   → 200 + uid
+#    curl -X POST :8080/api/creatProducer -d '{"name":"smoke-test"}'   → 200，uid 在 data.uid
 #    curl -X POST :8080/api/getProducer   -d '{"uid":"<上面的uid>"}'   → 200 同一聚合
 ```
 
